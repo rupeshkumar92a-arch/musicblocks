@@ -1298,10 +1298,15 @@ class Logo {
             tur.singer.notesPlayed[0] / tur.singer.notesPlayed[1] - durationTime
         );
 
-        if (split && durationTime > timeLeftInMeasure) {
-            // measureDuration: the total duration of one full measure.
-            const measureDuration = tur.singer.beatsPerMeasure / tur.singer.noteValuePerBeat;
+        // measureDuration: the total duration of one full measure.
+        const measureDuration = tur.singer.beatsPerMeasure / tur.singer.noteValuePerBeat;
+        // Notation durations go through rationalToFraction, which can't write
+        // anything shorter than 1/20000 of a whole note. A shorter measure has no
+        // barlines to show, and splitting at them would never end for tiny meters.
+        const [num, den] = this.deps.utils.rationalToFraction(measureDuration);
+        const barlinesWritable = Math.abs(num / den - measureDuration) <= 1e-7;
 
+        if (split && barlinesWritable && durationTime > timeLeftInMeasure) {
             // Cut the note at every barline it crosses: the portion that fits in
             // the current measure, one full measure for each measure it spans,
             // then the remainder that spills into the last measure.

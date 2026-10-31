@@ -3461,6 +3461,7 @@ describe("Logo timerManager getter and shim", () => {
 // ─── Logo notation ────────────────────────────────────────────────────────────
 
 describe("Logo updateNotation", () => {
+    const { rationalToFraction } = require("../utils/utils-logic");
     let logo;
     let mockActivity;
 
@@ -3468,6 +3469,7 @@ describe("Logo updateNotation", () => {
         setupLogoEnv({ withFlute: true });
         mockActivity = createMockActivity();
         logo = new Logo(mockActivity);
+        logo.deps.utils.rationalToFraction = rationalToFraction;
     });
 
     afterEach(() => jest.restoreAllMocks());
@@ -3503,7 +3505,6 @@ describe("Logo updateNotation", () => {
     });
 
     describe("notes longer than the rest of the measure", () => {
-        const { rationalToFraction } = require("../utils/utils-logic");
         let singer;
 
         // Plays a note of `wholeNotes` starting at `start` and returns the staged pieces
@@ -3518,7 +3519,6 @@ describe("Logo updateNotation", () => {
         };
 
         beforeEach(() => {
-            logo.deps.utils.rationalToFraction = rationalToFraction;
             logo.notation.notationDrumStaging[0] = [];
             singer = mockActivity.turtles.ithTurtle().singer;
             Object.assign(singer, { pickup: 0, meterAnchor: null });
@@ -3546,6 +3546,22 @@ describe("Logo updateNotation", () => {
             Object.assign(singer, { beatsPerMeasure: 2, noteValuePerBeat: 4 });
             expect(stage(["R"], 0.25, 1)).toEqual({ pieces: [0.25, 0.5, 0.25], ties: 0 });
         });
+
+        test("still splits at the shortest measure notation can write", () => {
+            // 1/20000 of a whole note per measure: a quarter note spans 5000 measures
+            Object.assign(singer, { beatsPerMeasure: 1, noteValuePerBeat: 20000 });
+            const { pieces, ties } = stage(["C4"], 0, 0.25);
+            expect(pieces).toHaveLength(5000);
+            expect(ties).toBe(4999);
+        });
+
+        test.each([1e-7, 1e-20])(
+            "writes the note whole when a measure of %s beats is too short to notate",
+            beats => {
+                Object.assign(singer, { beatsPerMeasure: beats, noteValuePerBeat: 4 });
+                expect(stage(["C4"], 0, 0.25)).toEqual({ pieces: [0.25], ties: 0 });
+            }
+        );
     });
 });
 

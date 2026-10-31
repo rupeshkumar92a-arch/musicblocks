@@ -1564,6 +1564,26 @@ describe("AST2BlockList Class", () => {
         expect(blockList).toEqual(expectedBlockList);
     });
 
+    test("should convert getDict back into a dictionary block", () => {
+        const code = `
+        new Mouse(async mouse => {
+            await mouse.print(await mouse.getDict("mydict"));
+            return mouse.ENDMOUSE;
+        });
+        MusicBlocks.run();`;
+
+        const expectedBlockList = [
+            [0, "start", 200, 200, [null, 1, null]],
+            [1, "print", 0, 0, [0, 2, null]],
+            [2, "dictionary", 0, 0, [1, 3]],
+            [3, ["text", { value: "mydict" }], 0, 0, [2]]
+        ];
+
+        const AST = acorn.parse(code, { ecmaVersion: 2020 });
+        let blockList = AST2BlockList.toBlockList(AST, config);
+        expect(blockList).toEqual(expectedBlockList);
+    });
+
     // Test all Rhythm Blocks.
     test("should generate correct blockList for all rhythm blocks", () => {
         const code = `

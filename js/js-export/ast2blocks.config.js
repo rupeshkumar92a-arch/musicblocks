@@ -88,6 +88,21 @@ window.ast2blocklist_config = {
             name_map: { getValue: "getDict2" }
         },
         {
+            comment: "Dictionary block",
+            ast: {
+                identifiers: [
+                    { property: "type", value: "AwaitExpression" },
+                    { property: "argument.type", value: "CallExpression" },
+                    { property: "argument.callee.type", value: "MemberExpression" },
+                    { property: "argument.callee.property.name", value: "getDict" },
+                    { property: "argument.arguments", size: 1 }
+                ],
+                name_property: "argument.callee.property.name",
+                argument_properties: ["argument.arguments[0]"]
+            },
+            name_map: { getDict: "dictionary" }
+        },
+        {
             comment: "Notes played block",
             ast: {
                 identifiers: [

@@ -18,6 +18,11 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+const constants = require("../../utils/musicutils-constants");
+
+global.NOTENAMES = constants.NOTENAMES;
+global.ACCIDENTAL_SEMITONE_MAP = constants.ACCIDENTAL_SEMITONE_MAP;
+
 const ChordBuilderAudio = require("../ChordBuilderAudio.js");
 
 describe("ChordBuilderAudio", () => {
@@ -146,6 +151,11 @@ describe("ChordBuilderAudio", () => {
             expect(audio.assignOctaves(["F#", "F"], 4)).toEqual(["F#4", "F5"]);
             expect(audio.assignOctaves(["C♯", "C"], 4)).toEqual(["C♯4", "C5"]);
             expect(audio.assignOctaves(["B", "Bb"], 4)).toEqual(["B4", "Bb5"]);
+        });
+
+        it("orders double accidentals by their semitone offset", () => {
+            expect(audio.assignOctaves(["Fbb", "F𝄫", "Fb"], 4)).toEqual(["Fbb4", "F𝄫4", "Fb4"]);
+            expect(audio.assignOctaves(["F𝄪", "F#"], 4)).toEqual(["F𝄪4", "F#5"]);
         });
     });
 

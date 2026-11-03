@@ -18,7 +18,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-/* global DEFAULTVOICE, ManagedTimer */
+/* global ACCIDENTAL_SEMITONE_MAP, DEFAULTVOICE, ManagedTimer, NOTENAMES */
 
 /**
  * @file ChordBuilderAudio.js
@@ -103,19 +103,6 @@ class ChordBuilderAudio {
             return [];
         }
 
-        const LETTER_ORDER = { C: 0, D: 1, E: 2, F: 3, G: 4, A: 5, B: 6 };
-        const ACCIDENTAL_OFFSETS = {
-            "#": 1,
-            "♯": 1,
-            "##": 2,
-            "x": 2,
-            "𝄪": 2,
-            "b": -1,
-            "♭": -1,
-            "bb": -2,
-            "𝄫": -2
-        };
-
         const result = [];
         let currentOctave = baseOctave;
         let lastLetter = -1;
@@ -124,12 +111,13 @@ class ChordBuilderAudio {
         for (let i = 0; i < notes.length; i++) {
             const note = notes[i];
             const cleanNote = typeof note === "string" ? note.trim() : String(note);
-            const letter = cleanNote.charAt(0).toUpperCase();
-            const letterIndex = LETTER_ORDER[letter];
-            const accidental = cleanNote.slice(1);
-            const accidentalOffset = ACCIDENTAL_OFFSETS[accidental] || 0;
+            const letterIndex = NOTENAMES.indexOf(cleanNote.charAt(0).toUpperCase());
+            let accidentalOffset = 0;
+            for (const char of cleanNote.slice(1)) {
+                accidentalOffset += ACCIDENTAL_SEMITONE_MAP[char] || 0;
+            }
 
-            if (i > 0 && letterIndex !== undefined && lastLetter !== -1) {
+            if (i > 0 && letterIndex !== -1 && lastLetter !== -1) {
                 if (
                     letterIndex < lastLetter ||
                     (letterIndex === lastLetter && accidentalOffset < lastAccidental)
@@ -138,7 +126,7 @@ class ChordBuilderAudio {
                 }
             }
 
-            lastLetter = letterIndex !== undefined ? letterIndex : -1;
+            lastLetter = letterIndex;
             lastAccidental = accidentalOffset;
             result.push(`${cleanNote}${currentOctave}`);
         }

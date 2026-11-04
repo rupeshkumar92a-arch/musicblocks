@@ -19,7 +19,7 @@
  */
 
 /* global
-   _, buildScale, ChordBuilderAudio
+   _, ACCIDENTAL_SEMITONE_MAP, buildScale, ChordBuilderAudio, NOTESTEP
 */
 
 /**
@@ -164,44 +164,13 @@ class ChordBuilderWidget {
     _noteToSemitone(note) {
         if (!note || typeof note !== "string") return 0;
         const clean = note.trim();
-        const map = {
-            "C": 0,
-            "B#": 0,
-            "B♯": 0,
-            "C#": 1,
-            "C♯": 1,
-            "Db": 1,
-            "D♭": 1,
-            "D": 2,
-            "D#": 3,
-            "D♯": 3,
-            "Eb": 3,
-            "E♭": 3,
-            "E": 4,
-            "Fb": 4,
-            "F♭": 4,
-            "F": 5,
-            "E#": 5,
-            "E♯": 5,
-            "F#": 6,
-            "F♯": 6,
-            "Gb": 6,
-            "G♭": 6,
-            "G": 7,
-            "G#": 8,
-            "G♯": 8,
-            "Ab": 8,
-            "A♭": 8,
-            "A": 9,
-            "A#": 10,
-            "A♯": 10,
-            "Bb": 10,
-            "B♭": 10,
-            "B": 11,
-            "Cb": 11,
-            "C♭": 11
-        };
-        return map[clean] !== undefined ? map[clean] : 0;
+        const letterStep = NOTESTEP[clean.charAt(0)];
+        if (letterStep === undefined) return 0;
+        let semitone = letterStep - 1;
+        for (const char of clean.slice(1)) {
+            semitone += ACCIDENTAL_SEMITONE_MAP[char] || 0;
+        }
+        return (semitone + 12) % 12;
     }
 
     /**

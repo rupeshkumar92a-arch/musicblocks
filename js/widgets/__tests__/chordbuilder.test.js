@@ -22,6 +22,11 @@
 global._ = msg => msg;
 global.DEFAULTVOICE = "piano";
 
+const constants = require("../../utils/musicutils-constants");
+
+global.NOTESTEP = constants.NOTESTEP;
+global.ACCIDENTAL_SEMITONE_MAP = constants.ACCIDENTAL_SEMITONE_MAP;
+
 const ChordBuilderWidget = require("../chordbuilder.js");
 
 describe("ChordBuilderWidget", () => {
@@ -230,6 +235,36 @@ describe("ChordBuilderWidget", () => {
             expect(chords[6].roman).toBe("VII");
             expect(chords[6].name).toBe("G");
             expect(chords[6].quality).toBe("major");
+        });
+
+        it("detects chord quality for chords spelled with double accidentals", () => {
+            // Gb minor: Gb Bbb Db, Ab Cb Ebb, Cb Ebb Gb
+            const gbMinor = widget._buildDiatonicChords("Gb", "minor");
+            expect(gbMinor[0].notes).toEqual(["G♭", "B𝄫", "D♭"]);
+            expect(gbMinor[0].quality).toBe("minor");
+            expect(gbMinor[0].roman).toBe("i");
+            expect(gbMinor[1].quality).toBe("diminished");
+            expect(gbMinor[1].roman).toBe("ii°");
+            expect(gbMinor[3].quality).toBe("minor");
+            expect(gbMinor[3].roman).toBe("iv");
+
+            // C# lydian: F𝄪 A# C# is the #iv diminished chord
+            const cSharpLydian = widget._buildDiatonicChords("C#", "lydian");
+            expect(cSharpLydian[3].notes).toEqual(["F𝄪", "A♯", "C♯"]);
+            expect(cSharpLydian[3].quality).toBe("diminished");
+            expect(cSharpLydian[6].quality).toBe("minor");
+        });
+
+        it("maps note names with any accidental to semitones", () => {
+            expect(widget._noteToSemitone("C")).toBe(0);
+            expect(widget._noteToSemitone("B#")).toBe(0);
+            expect(widget._noteToSemitone("C♭")).toBe(11);
+            expect(widget._noteToSemitone("F𝄪")).toBe(7);
+            expect(widget._noteToSemitone("B𝄫")).toBe(9);
+            expect(widget._noteToSemitone("C𝄫")).toBe(10);
+            expect(widget._noteToSemitone("Dbb")).toBe(0);
+            expect(widget._noteToSemitone("H")).toBe(0);
+            expect(widget._noteToSemitone(null)).toBe(0);
         });
 
         it("updates chords when changing key or mode via setKeyAndMode", () => {
